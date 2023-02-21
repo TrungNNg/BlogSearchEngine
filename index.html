@@ -17,9 +17,8 @@
 
     {{if .Valid_url}}
         Link that contains search keyword are:
-        {{range $key, $value := .All_urls}}
-            {{$key}}
-            {{$value}}
+        {{range $url := .Url_contain_keyword}}
+            {{ $url }}
         {{end}}
     {{end}}
 </body>

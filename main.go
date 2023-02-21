@@ -1,13 +1,16 @@
 package main
 
 import (
+    "strings"
     "fmt"
     "net/http"
     "log"
     "html/template"
     "net/url"
     "io"
+    "regexp"
 
+    "golang.org/x/net/html"
     "github.com/TrungNNg/BlogSearchEngine/linkparser"
 )
 
@@ -17,6 +20,8 @@ type Data struct {
     Keyword string
     Valid_url bool
     All_urls map[string]bool
+    Url_contents map[string]string
+    Url_contain_keyword []string
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -39,6 +44,23 @@ func handler(w http.ResponseWriter, r *http.Request) {
         fmt.Println("all link BEFORE crawl", data.All_urls)
         crawl(data.Url, 1, data.All_urls, u.Hostname(), u.Scheme) // we only find links with depth of 1
         fmt.Println("all link AFTER crawl", data.All_urls)
+
+        // build a map of [url] -> text in html of url
+        data.Url_contents = map[string]string{}
+        fmt.Println("Urls_content BEFORE", data.Url_contents)
+        for k := range data.All_urls {
+            getText(k, data.Url_contents)
+        }
+        fmt.Println("Urls_content AFTER ", data.Url_contents)
+
+        // for each text of each URL use regexp to match keyword
+        for k, v := range data.Url_contents {
+            match, _ := regexp.MatchString(strings.ToLower(data.Keyword), v)
+            if match {
+                data.Url_contain_keyword = append(data.Url_contain_keyword, k)
+            }
+        }
+
         tpl.Execute(w, data)
         return
     }
@@ -144,5 +166,31 @@ func GetHTML(url string) ([]byte, error) {
     }
     return b, nil
 }
+
+// getText build the Url_contents map of [url] -> text
+func getText(url string, Url_contents map[string]string) {
+    b, _ := GetHTML(url)
+    if len(b) == 0 {
+        return
+    }
+    node, err := html.Parse(strings.NewReader(string(b)))
+    if err != nil {
+        return
+    }
+    text := ""
+    traverseText(node, &text)
+    Url_contents[url] = text
+}
+
+func traverseText(node *html.Node, text *string) {
+    if node.Type == html.TextNode {
+        *text += strings.TrimSpace(strings.ToLower(node.Data))
+    }
+    // traverse the tree using DFS 
+    for c := node.FirstChild; c != nil; c = c.NextSibling {
+		traverseText(c, text)
+    }
+}
+
 
 
