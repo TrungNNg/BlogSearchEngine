@@ -8,6 +8,11 @@
 <body>
 
     <p>{{.Text}}</p>
+    <form action="http://localhost:8080/" method="post">
+        <input type="text" name="root_url">
+        <input type="submit">
+    </form>
 
+    <p>{{if .Url}} given url: {{.Url}} {{end}}</p>
 </body>
 </html>

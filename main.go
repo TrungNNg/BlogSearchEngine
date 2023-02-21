@@ -9,12 +9,17 @@ import (
 
 type Data struct {
     Text string
+    Url string
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
     //fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
     tpl, _ := template.ParseFiles("index.html")
-    tpl.Execute(w, Data{Text:"Hello World"})
+    data := Data{Text:"Hello"}
+    if r.Method == http.MethodPost {
+        data.Url = r.FormValue("root_url")
+    }
+    tpl.Execute(w, data)
 }
 
 func main() {
