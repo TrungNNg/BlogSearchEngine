@@ -9,10 +9,18 @@
 
     <p>{{.Text}}</p>
     <form action="http://localhost:8080/" method="post">
-        <input type="text" name="root_url">
+        //TODO ADD label for input and key word, keyword need to be case insensitive
+        URL:<input type="text" name="root_url">
+        Keyword: <input type="text" name="keyword">
         <input type="submit">
     </form>
 
-    <p>{{if .Url}} given url: {{.Url}} {{end}} {{if .Invalid_url}} is invalid {{end}}</p>
+    {{if .Valid_url}}
+        Link that contains search keyword are:
+        {{range $key, $value := .All_urls}}
+            {{$key}}
+            {{$value}}
+        {{end}}
+    {{end}}
 </body>
 </html>
