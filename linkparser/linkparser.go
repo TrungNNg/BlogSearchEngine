@@ -1,3 +1,4 @@
+// linkparse package will parse all the links in <a> tag of an html file
 package linkparser
 
 import (
@@ -16,36 +17,40 @@ type Link struct {
     Text string
 }
 
-func ParseA(text string) []Link {
-    doc, err := html.Parse(strings.NewReader(text))
+// given an html page in string, this function will return a list of all <a> tag
+func ParseAnchorTag(html_text string) []Link {
+    //Parse returns the parse tree for the HTML from the given Reader. (*Node)
+    node, err := html.Parse(strings.NewReader(html_text))
     if err != nil {
-        fmt.Println("error parsing html string")
+        fmt.Println("error parsing html text")
         panic(err)
     }
     links := []Link{}
-    tra(doc, &links)
+    traverse(node, &links)
     return links
 }
 
-func tra(n *html.Node, res *[]Link) {
+func traverse(node *html.Node, links *[]Link) {
     href := ""
     text := ""
-    if n.Type == html.ElementNode && n.Data == "a" {
-        for _, att := range n.Attr {
-            if att.Key == "href" {
+    // check if current node is <a> tag
+    if node.Type == html.ElementNode && node.Data == "a" {
+        for _, att := range node.Attr {
+            if att.Key == "href" { // save href value
                 href = att.Val
             }
         }
-        for c := n.FirstChild; c != nil; c = c.NextSibling {
-            if c.Type == html.TextNode {
+        for c := node.FirstChild; c != nil; c = c.NextSibling {
+            if c.Type == html.TextNode { // save text within <a> tag
                 text += c.Data
             }
         }
         text = strings.TrimSpace(text)
-        *res = append(*res, Link{Href:href, Text:text})
+        *links = append(*links, Link{Href:href, Text:text}) // save <a> tag content
     }
-    for c := n.FirstChild; c != nil; c = c.NextSibling {
-		tra(c, res)
+    // traverse the tree using DFS 
+    for c := node.FirstChild; c != nil; c = c.NextSibling {
+		traverse(c, links)
     }
 }
 

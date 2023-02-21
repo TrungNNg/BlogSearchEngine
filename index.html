@@ -13,6 +13,6 @@
         <input type="submit">
     </form>
 
-    <p>{{if .Url}} given url: {{.Url}} {{end}}</p>
+    <p>{{if .Url}} given url: {{.Url}} {{end}} {{if .Invalid_url}} is invalid {{end}}</p>
 </body>
 </html>

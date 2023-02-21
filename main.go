@@ -5,13 +5,15 @@ import (
     "net/http"
     "log"
     "html/template"
+    "net/url"
 
-    "github.com/TrungNNg/BlogSearchEngine/linkparser"
+    //"github.com/TrungNNg/BlogSearchEngine/linkparser"
 )
 
 type Data struct {
     Text string
     Url string
+    Invalid_url bool
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -20,6 +22,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
     data := Data{Text:"Hello"}
     if r.Method == http.MethodPost {
         data.Url = r.FormValue("root_url")
+        _, err := url.ParseRequestURI(data.Url)
+        if err != nil {
+            data.Invalid_url = true
+        }
     }
     tpl.Execute(w, data)
 }
@@ -29,4 +35,6 @@ func main() {
     fmt.Println("server running on 8080")
     log.Fatal(http.ListenAndServe(":8080", nil))
 }
+
+
 
