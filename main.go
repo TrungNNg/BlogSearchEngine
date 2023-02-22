@@ -9,10 +9,23 @@ import (
     "net/url"
     "io"
     "regexp"
+    "os"
 
     "golang.org/x/net/html"
     "github.com/TrungNNg/BlogSearchEngine/linkparser"
 )
+
+var host string
+var port string
+func init() {
+    b, err := os.ReadFile("config.txt")
+    if err != nil {
+        panic("can not read config file")
+    }
+    l := strings.Split(string(b), "\n")
+    host = l[0]
+    port = l[1]
+}
 
 type Data struct {
     Text string
@@ -22,12 +35,14 @@ type Data struct {
     All_urls map[string]bool
     Url_contents map[string]string
     Url_contain_keyword []string
+
+    Host string
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
     //fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
     tpl, _ := template.ParseFiles("index.html")
-    data := Data{Text:"Hello"}
+    data := Data{Text:"Blog Keyword Search Engine", Host:host}
     if r.Method == http.MethodPost {
         data.Url = r.FormValue("root_url")
         data.Keyword = r.FormValue("keyword")
@@ -41,17 +56,17 @@ func handler(w http.ResponseWriter, r *http.Request) {
         // url is valid, crawl the url and return all link with given keyword
         // only crawl with depth of 1, so it only check links that in the html of root_url
         data.All_urls = map[string]bool{}
-        fmt.Println("all link BEFORE crawl", data.All_urls)
+        //fmt.Println("all link BEFORE crawl", data.All_urls)
         crawl(data.Url, 1, data.All_urls, u.Hostname(), u.Scheme) // we only find links with depth of 1
-        fmt.Println("all link AFTER crawl", data.All_urls)
+        //fmt.Println("all link AFTER crawl", data.All_urls)
 
         // build a map of [url] -> text in html of url
         data.Url_contents = map[string]string{}
-        fmt.Println("Urls_content BEFORE", data.Url_contents)
+        //fmt.Println("Urls_content BEFORE", data.Url_contents)
         for k := range data.All_urls {
             getText(k, data.Url_contents)
         }
-        fmt.Println("Urls_content AFTER ", data.Url_contents)
+        //fmt.Println("Urls_content AFTER ", data.Url_contents)
 
         // for each text of each URL use regexp to match keyword
         for k, v := range data.Url_contents {
@@ -61,6 +76,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
             }
         }
 
+
+        //fmt.Println("HERE",u.Hostname(), u.Scheme)
+
         tpl.Execute(w, data)
         return
     }
@@ -69,8 +87,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
     http.HandleFunc("/", handler)
-    fmt.Println("server running on 8080")
-    log.Fatal(http.ListenAndServe(":8080", nil))
+    log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
 // crawl will traverse all links using BFS from the root url and save all valid links to data.All_urls
@@ -137,14 +154,14 @@ func filterLinks(links []linkparser.Link, hostname, scheme string) []string {
         }
         // if same domain and not added then add to res
         if u.Hostname() == hostname && !added[l.Href] {
+            fmt.Println("THIS SHOULD HIT")
             res = append(res, l.Href)
+            fmt.Println(res)
             added[l.Href] = true
-        }
-
-        // this is for relative url
-        // Forexample: href="/foo/bar.html" is valid url
-        // however it need to change to scheme://hostname/foo/bar.html
-        if u.Hostname() == "" && !added[l.Href] {
+        } else if u.Hostname() == "" && !added[l.Href] {
+            // this is for relative url
+            // Forexample: href="/foo/bar.html" is valid url
+            // however it need to change to scheme://hostname/foo/bar.html
             res = append(res, scheme + "://" + hostname + l.Href)
             added[l.Href] = true
         }

@@ -2,24 +2,93 @@
 <html>
 <head>
     <style>
-       
+        body {
+            background-color: lightblue;
+        }
+       input[type=text] {
+        width: 100%;
+        padding: 12px 20px;
+        margin: 8px 0;
+        box-sizing: border-box;
+       }
+
+       form {
+        border-radius: 5px;
+        background-color: #f2f2f2;
+        padding: 20px;
+        width: 50%;
+      }
+
+       input[type=submit] {
+        width: 100%;
+        background-color: #4CAF50;
+        color: white;
+        padding: 14px 20px;
+        margin: 8px 0;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+       }
+
+       div.container {
+        border-radius: 5px;
+        border-color: black;
+        text-align: center;
+        align-content: center;
+        padding: 20px;
+       }
+
+       a.link {
+        font-size: larger;
+       }
+
+       div.form_container {
+        padding-left: 30%;
+       }
     </style>
 </head>
 <body>
 
-    <p>{{.Text}}</p>
-    <form action="http://localhost:8080/" method="post">
-        //TODO ADD label for input and key word, keyword need to be case insensitive
-        URL:<input type="text" name="root_url">
-        Keyword: <input type="text" name="keyword">
-        <input type="submit">
-    </form>
+    <h1>{{.Text}}</h1>
+    <p> I often find myself wondering if a blogger has wrote about a specific thing in his/her blog so I create this service. It will print all link that contains given keyword using given URL</p>
+    <p> Note: the engine only crawl with depth = 1, so use URL that link to html page which contains all blog</p>
+    <p>Ex: <a href="https://geohot.github.io/blog/">https://geohot.github.io/blog/</a></p>
 
-    {{if .Valid_url}}
-        Link that contains search keyword are:
-        {{range $url := .Url_contain_keyword}}
-            {{ $url }}
-        {{end}}
-    {{end}}
+    <div class="form_container">
+        <form action={{.Host}} method="post">
+            <label for="root_url">URL</label>
+            <input type="text" name="root_url">
+        
+        
+            <label for="keyword">Keyword</label>
+            <input type="text" name="keyword">
+      
+            <input type="submit">
+        </form>
+    </div>
+
+        <br>
+        <br>
+        <br>
+ 
+        <div class="container">
+            {{if .Valid_url}}
+                <h2>Url that contains keyword:</h2>
+                <br>
+                {{range $url := .Url_contain_keyword}}
+                <br>
+                <a href="{{$url}}" class="link"> {{$url}}</a>
+                <br>
+                {{end}}
+            {{end}}
+        </div>
+
+
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
 </body>
 </html>
