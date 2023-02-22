@@ -18,7 +18,7 @@ import (
 var host string
 var port string
 func init() {
-    b, err := os.ReadFile("config.txt")
+    b, err := os.ReadFile(".env")
     if err != nil {
         panic("can not read config file")
     }
@@ -87,6 +87,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
     http.HandleFunc("/", handler)
+    fmt.Println("Server listening on port",port)
     log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
